@@ -1,0 +1,133 @@
+#! /bin/zsh
+
+
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+PURPLE='\033[0;35m'
+NC='\033[1;37m'
+trap 'continue' SIGINT
+
+#TODO: use sed maybe? look for $ (meaning the end of the line) to get the file type
+extension="$(echo -n "$1" | cut -d "." -f2)"
+
+if [ $extension = "c" ]; then
+
+    # run C code
+    #TODO:Detect if gcc exists; if not; install gcc, then run. 
+
+        files="$(echo -n $(ls | grep 2.c | nl | sed 's/     //g' | sed 's/      / /g' | cut -d " " -f 1 | tail -n 1))"
+        arguments="$(echo -n $(cat $1 | grep "int main" | cut -d "(" -f2 | cut -d ")" -f1))"
+
+        clear
+        name=$1
+        others="$(cat $name | grep "#include *\"*\"" | cut -d " " -f 2 | sed 's/\"//g' | sed 's/.h/.c /g' | tr -d \\n)"
+        eval "gcc -o $name.out ./$name $others"
+
+        argz=""
+
+        if [ -z "$arguments" ]; then
+            ./$name.out;
+            trap 'continue' SIGINT
+            rm $name.out;
+        else
+            echo "Please enter argument/s for $1: "
+            read argz && clear && eval "./$name.out $argz"
+            trap 'continue' SIGINT
+            rm $name.out;
+        fi
+
+else
+    if [ $extension = "py" ]; then
+        # run Python code
+        #TODO: Detect if python3 exists; if not; install python3 and then run.
+        #TODO: Detect missing modules and install with pip; if pip !exists; install pip and continue
+        clear;
+        python3 $1;
+
+
+    else 
+        if [ $extension = "rs" ]; then
+            # run Rust code
+            #TODO: check if rustc exists; if not; install rustc and continue.
+            #TODO: possibly detect cargo and use cargo run instead?
+            #TODO: detect other files if similar c (with header files and stuff)
+                trap 'continue' SIGINT
+                clear
+                name=$1
+                eval "rustc $name"
+                newname="$(echo $name | cut -f1 -d ".")"
+                ./$newname;
+                trap 'continue' SIGINT
+                rm $newname;
+
+        else 
+            if [ $extension = "cpp" ]; then
+                # Run C++ code
+                #TODO: check if g++ is installed; if not; install and continue.
+
+                    trap 'continue' SIGINT
+                    arguments="$(echo -n $(cat $1 | grep "int main" | cut -d "(" -f2 | cut -d ")" -f1))"
+
+                    clear
+                    name=$1
+                    others="$(cat $name | grep "#include *\"*\"" | cut -d " " -f 2 | sed 's/\"//g' | sed 's/.h/.cpp /g' | tr -d \\n)"
+                    eval "g++ -o $name.out ./$name $others"
+                    argz=""
+                    if [ -z "$arguments" ]; then
+                        ./$name.out;
+                        trap 'continue' SIGINT
+                        rm $name.out;
+                    else
+                        echo "Please enter argument/s for $1: "
+                        read argz && clear && eval "./$name.out $argz"
+                        trap 'continue' SIGINT
+                        rm $name.out;
+                    fi
+            else 
+                if [ $extension = "go" ]; then
+                    # Run Golang code
+                    #TODO: check if go is installed; if not; install and continue.
+                    clear;
+                    go run $1;
+                else 
+                    if [ $extension = "html" ]; then
+                        # Run HTML code
+                        #TODO: check if liver-server is installed. If not install and continue;
+                        echo "HTML"
+
+                    else 
+                        if [ $extension = "cs" ]; then
+                            #Must make sure that dotnet is installed
+                            #Create a new project using the command dotnet new console -o <project_name>.
+                            #Navigate to your project directory using the command cd <project_name>.
+                            #Build the project using the command dotnet build.
+                            #Run the project using the command dotnet run
+                            echo "C#"
+                        else 
+                            if [ $extension = "java" ]; then
+                                echo "Java"
+                                javaname="echo $1 | cut -d '.' -f1 ";
+                                javac $1;
+                                java $javaname;
+                            fi
+                        fi
+                    fi
+                fi
+            fi
+        fi
+    fi
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
